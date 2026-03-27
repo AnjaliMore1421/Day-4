@@ -2,32 +2,38 @@
 
 /**
  * Fetch wrapper with retry logic
+ * 
  * @param {string} url - API endpoint
  * @param {object} options - fetch options
  * @param {number} retries - number of retry attempts
- * @param {number} delay - delay between retries (ms)
+ * @param {number} delay - delay between retries in ms
  */
 
 async function fetchWithRetry(url, options = {}, retries = 3, delay = 1000) {
   try {
     const response = await fetch(url, options);
 
-    // Handle HTTP errors manually
+    // Check if HTTP status is OK (200–299)
     if (!response.ok) {
       throw new Error(`HTTP Error: ${response.status}`);
     }
 
+    // Return parsed JSON if successful
     return await response.json();
 
   } catch (error) {
+    // Retry if attempts are left
     if (retries > 0) {
       console.warn(`Retrying... Attempts left: ${retries}`);
 
+      // Wait for 'delay' ms before retrying
       await new Promise(resolve => setTimeout(resolve, delay));
 
+      // Recursive call with one less retry
       return fetchWithRetry(url, options, retries - 1, delay);
     } else {
-      throw error; // Final failure
+      // No retries left → throw final error
+      throw error;
     }
   }
 }
@@ -35,7 +41,7 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1000) {
 export default fetchWithRetry;
 
 /*
-==================== OUTPUT ====================
+==================== OUTPUT EXAMPLES ====================
 
 1) Success Case:
 ------------------------------------------------
